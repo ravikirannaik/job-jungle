@@ -3,20 +3,27 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --pink-card: #FF6B9D;
+  --pink-card-light: #FFF0F5;
+  --blue-card: #4A90D9;
+  --blue-card-light: #EBF5FF;
+  --accent-red: #E74C3C;
+  --accent-green: #27AE60;
+  --accent-orange: #F39C12;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-pink-card: var(--pink-card);
+  --color-pink-light: var(--pink-card-light);
+  --color-blue-card: var(--blue-card);
+  --color-blue-light: var(--blue-card-light);
+  --color-accent-red: var(--accent-red);
+  --color-accent-green: var(--accent-green);
+  --color-accent-orange: var(--accent-orange);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
 }
 
 body {

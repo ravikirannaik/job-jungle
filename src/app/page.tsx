@@ -1,65 +1,116 @@
-import Image from "next/image";
+'use client';
+
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 export default function Home() {
+  const router = useRouter();
+  const [roomCode, setRoomCode] = useState('');
+  const [name, setName] = useState('');
+  const [joining, setJoining] = useState(false);
+  const [error, setError] = useState('');
+
+  async function handleJoin(e: React.FormEvent) {
+    e.preventDefault();
+    if (!roomCode.trim() || !name.trim()) return;
+
+    setJoining(true);
+    setError('');
+
+    try {
+      const res = await fetch('/api/join', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ roomCode: roomCode.trim().toUpperCase(), name: name.trim() }),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.error || 'Failed to join');
+        setJoining(false);
+        return;
+      }
+
+      // Save session token for reconnection
+      localStorage.setItem(`jj_session_${data.game.id}`, data.player.session_token);
+      localStorage.setItem('jj_player_id', data.player.id);
+      localStorage.setItem('jj_game_id', data.game.id);
+
+      router.push(`/game/${data.game.id}/worker`);
+    } catch {
+      setError('Connection failed. Try again.');
+      setJoining(false);
+    }
+  }
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+    <main className="flex-1 flex flex-col items-center justify-center p-6">
+      <div className="w-full max-w-md space-y-8">
+        {/* Title */}
+        <div className="text-center">
+          <h1 className="text-4xl font-bold tracking-tight">Job Jungle</h1>
+          <p className="mt-2 text-gray-500">
+            Labour Market Simulation
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
+
+        {/* Join Game Form */}
+        <form onSubmit={handleJoin} className="space-y-4">
+          <div>
+            <label htmlFor="roomCode" className="block text-sm font-medium mb-1">
+              Room Code
+            </label>
+            <input
+              id="roomCode"
+              type="text"
+              maxLength={4}
+              placeholder="e.g. A3K7"
+              value={roomCode}
+              onChange={e => setRoomCode(e.target.value.toUpperCase())}
+              className="w-full px-4 py-3 text-2xl text-center tracking-[0.3em] font-mono border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none uppercase"
+              required
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+          </div>
+
+          <div>
+            <label htmlFor="name" className="block text-sm font-medium mb-1">
+              Your Name
+            </label>
+            <input
+              id="name"
+              type="text"
+              placeholder="Enter your full name"
+              value={name}
+              onChange={e => setName(e.target.value)}
+              className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
+              required
+            />
+          </div>
+
+          {error && (
+            <p className="text-red-600 text-sm text-center">{error}</p>
+          )}
+
+          <button
+            type="submit"
+            disabled={joining || !roomCode.trim() || !name.trim()}
+            className="w-full py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
-            Documentation
-          </a>
+            {joining ? 'Joining...' : 'Join Game'}
+          </button>
+        </form>
+
+        {/* Instructor link */}
+        <div className="text-center pt-4 border-t border-gray-200">
+          <p className="text-sm text-gray-500 mb-2">Are you the instructor?</p>
+          <button
+            onClick={() => router.push('/create')}
+            className="text-blue-600 font-medium hover:underline"
+          >
+            Create a new game
+          </button>
         </div>
-      </main>
-    </div>
+      </div>
+    </main>
   );
 }
