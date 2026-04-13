@@ -28,6 +28,8 @@ export interface Player {
   balance: number;
   employer_firm_name: string | null;
   became_employer_round: number | null;
+  student_id: string | null;
+  email: string | null;
   session_token: string | null;
   joined_at: string;
 }

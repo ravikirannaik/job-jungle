@@ -8,6 +8,7 @@ import {
   ReferenceLine,
 } from 'recharts';
 import { PINK_PxMP, BLUE_PxMP, KITE_PRICE } from '@/lib/constants';
+import { findByName } from '@/lib/roster';
 import type { Hire, Player } from '@/lib/types';
 
 export default function ResultsPage() {
@@ -145,12 +146,14 @@ export default function ResultsPage() {
           <h1 className="text-2xl font-bold">Game Results</h1>
           <p className="text-gray-500 text-sm">Room {game.room_code} | {game.current_round} rounds</p>
         </div>
-        <button
-          onClick={exportCSV}
-          className="px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-900 text-sm font-medium"
-        >
-          Export CSV
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={exportCSV}
+            className="px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-900 text-sm font-medium"
+          >
+            Export CSV
+          </button>
+        </div>
       </div>
 
       {/* Leaderboards */}
@@ -284,6 +287,35 @@ export default function ResultsPage() {
             <Bar dataKey="rate" fill="#f59e0b" name="Unemployment %" />
           </BarChart>
         </ResponsiveContainer>
+      </div>
+
+      {/* Report Cards */}
+      <div>
+        <h2 className="font-bold mb-2">Report Cards</h2>
+        <p className="text-xs text-gray-500 mb-3">Click any name to view their personalized round-by-round report card.</p>
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+          {[...workerLeaderboard, ...employerLeaderboard].map(p => {
+            const roster = findByName(p.name);
+            return (
+              <a
+                key={p.id}
+                href={`/game/${game.id}/report/${p.id}`}
+                target="_blank"
+                className="flex items-center justify-between p-2 bg-gray-50 rounded hover:bg-blue-50 text-sm transition-colors"
+              >
+                <span className="truncate">
+                  {p.name}
+                  {roster && <span className="text-gray-400 ml-1 text-xs">({roster.studentId})</span>}
+                </span>
+                <span className={`text-xs px-1.5 py-0.5 rounded ${
+                  p.role === 'employer' ? 'bg-blue-100 text-blue-700' : 'bg-gray-200 text-gray-600'
+                }`}>
+                  {p.role === 'employer' ? 'Emp' : p.skill === 'blue' ? 'Blue' : 'Pink'}
+                </span>
+              </a>
+            );
+          })}
+        </div>
       </div>
 
       {/* Full Transaction Log */}

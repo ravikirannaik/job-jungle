@@ -208,10 +208,16 @@ export default function WorkerPage() {
             <p className="font-bold text-lg">Game Over!</p>
             <p className="text-2xl font-bold mt-2">${player.balance}</p>
             <p className="text-sm text-gray-500">Final Balance</p>
-            <a href={`/game/${game.id}/results`}
-              className="inline-block mt-3 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm">
-              View Results
-            </a>
+            <div className="flex gap-2 justify-center mt-3">
+              <a href={`/game/${game.id}/report/${player.id}`}
+                className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium">
+                My Report Card
+              </a>
+              <a href={`/game/${game.id}/results`}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm">
+                View Results
+              </a>
+            </div>
           </div>
         )}
 

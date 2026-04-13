@@ -6,13 +6,13 @@ import { useRouter } from 'next/navigation';
 export default function Home() {
   const router = useRouter();
   const [roomCode, setRoomCode] = useState('');
-  const [name, setName] = useState('');
+  const [studentId, setStudentId] = useState('');
   const [joining, setJoining] = useState(false);
   const [error, setError] = useState('');
 
   async function handleJoin(e: React.FormEvent) {
     e.preventDefault();
-    if (!roomCode.trim() || !name.trim()) return;
+    if (!roomCode.trim() || !studentId.trim()) return;
 
     setJoining(true);
     setError('');
@@ -21,7 +21,7 @@ export default function Home() {
       const res = await fetch('/api/join', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ roomCode: roomCode.trim().toUpperCase(), name: name.trim() }),
+        body: JSON.stringify({ roomCode: roomCode.trim().toUpperCase(), studentId: studentId.trim() }),
       });
       const data = await res.json();
 
@@ -32,7 +32,7 @@ export default function Home() {
       }
 
       // Save session token for reconnection
-      localStorage.setItem(`jj_session_${data.game.id}`, data.player.session_token);
+      localStorage.setItem(`jj_session_${data.game.id}`, data.player.session_token || '');
       localStorage.setItem('jj_player_id', data.player.id);
       localStorage.setItem('jj_game_id', data.game.id);
 
@@ -50,7 +50,7 @@ export default function Home() {
         <div className="text-center">
           <h1 className="text-4xl font-bold tracking-tight">Job Jungle</h1>
           <p className="mt-2 text-gray-500">
-            Labour Market Simulation
+            Labour Market Simulation — ECON207
           </p>
         </div>
 
@@ -73,18 +73,22 @@ export default function Home() {
           </div>
 
           <div>
-            <label htmlFor="name" className="block text-sm font-medium mb-1">
-              Your Name
+            <label htmlFor="studentId" className="block text-sm font-medium mb-1">
+              Student ID
             </label>
             <input
-              id="name"
+              id="studentId"
               type="text"
-              placeholder="Enter your full name"
-              value={name}
-              onChange={e => setName(e.target.value)}
-              className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              maxLength={6}
+              placeholder="e.g. 240531"
+              value={studentId}
+              onChange={e => setStudentId(e.target.value.replace(/\D/g, ''))}
+              className="w-full px-4 py-3 text-2xl text-center tracking-[0.15em] font-mono border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
               required
             />
+            <p className="text-xs text-gray-400 mt-1">Your FLAME University student ID number</p>
           </div>
 
           {error && (
@@ -93,7 +97,7 @@ export default function Home() {
 
           <button
             type="submit"
-            disabled={joining || !roomCode.trim() || !name.trim()}
+            disabled={joining || !roomCode.trim() || !studentId.trim()}
             className="w-full py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             {joining ? 'Joining...' : 'Join Game'}
