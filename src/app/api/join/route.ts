@@ -5,11 +5,18 @@ import { findByStudentId } from '@/lib/roster';
 
 export async function POST(request: Request) {
   const supabase = createServerClient();
-  const { roomCode, studentId } = await request.json();
+  const { roomCode, studentId, section } = await request.json();
 
   if (!roomCode || !studentId?.trim()) {
     return NextResponse.json(
       { error: 'Room code and Student ID are required' },
+      { status: 400 }
+    );
+  }
+
+  if (!section || !['A', 'B'].includes(section)) {
+    return NextResponse.json(
+      { error: 'Please select your section (A or B)' },
       { status: 400 }
     );
   }
@@ -20,6 +27,14 @@ export async function POST(request: Request) {
     return NextResponse.json(
       { error: 'Student ID not found in the class roster.' },
       { status: 404 }
+    );
+  }
+
+  // Verify section matches
+  if (student.section !== section) {
+    return NextResponse.json(
+      { error: `Student ID ${studentId} belongs to Section ${student.section}, not Section ${section}.` },
+      { status: 400 }
     );
   }
 
@@ -82,5 +97,5 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: playerErr.message }, { status: 500 });
   }
 
-  return NextResponse.json({ player, game, student: { email: student.email } });
+  return NextResponse.json({ player, game });
 }

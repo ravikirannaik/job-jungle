@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 
 export default function Home() {
   const router = useRouter();
+  const [section, setSection] = useState<'A' | 'B' | ''>('');
   const [roomCode, setRoomCode] = useState('');
   const [studentId, setStudentId] = useState('');
   const [joining, setJoining] = useState(false);
@@ -12,7 +13,7 @@ export default function Home() {
 
   async function handleJoin(e: React.FormEvent) {
     e.preventDefault();
-    if (!roomCode.trim() || !studentId.trim()) return;
+    if (!section || !roomCode.trim() || !studentId.trim()) return;
 
     setJoining(true);
     setError('');
@@ -21,7 +22,11 @@ export default function Home() {
       const res = await fetch('/api/join', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ roomCode: roomCode.trim().toUpperCase(), studentId: studentId.trim() }),
+        body: JSON.stringify({
+          roomCode: roomCode.trim().toUpperCase(),
+          studentId: studentId.trim(),
+          section,
+        }),
       });
       const data = await res.json();
 
@@ -31,7 +36,6 @@ export default function Home() {
         return;
       }
 
-      // Save session token for reconnection
       localStorage.setItem(`jj_session_${data.game.id}`, data.player.session_token || '');
       localStorage.setItem('jj_player_id', data.player.id);
       localStorage.setItem('jj_game_id', data.game.id);
@@ -56,6 +60,36 @@ export default function Home() {
 
         {/* Join Game Form */}
         <form onSubmit={handleJoin} className="space-y-4">
+          {/* Section Selector */}
+          <div>
+            <label className="block text-sm font-medium mb-2">Section</label>
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => setSection('A')}
+                className={`py-3 rounded-lg border-2 font-semibold text-lg transition-colors ${
+                  section === 'A'
+                    ? 'border-blue-500 bg-blue-50 text-blue-700'
+                    : 'border-gray-300 text-gray-500 hover:border-gray-400'
+                }`}
+              >
+                Section A
+              </button>
+              <button
+                type="button"
+                onClick={() => setSection('B')}
+                className={`py-3 rounded-lg border-2 font-semibold text-lg transition-colors ${
+                  section === 'B'
+                    ? 'border-blue-500 bg-blue-50 text-blue-700'
+                    : 'border-gray-300 text-gray-500 hover:border-gray-400'
+                }`}
+              >
+                Section B
+              </button>
+            </div>
+          </div>
+
+          {/* Room Code */}
           <div>
             <label htmlFor="roomCode" className="block text-sm font-medium mb-1">
               Room Code
@@ -72,6 +106,7 @@ export default function Home() {
             />
           </div>
 
+          {/* Student ID */}
           <div>
             <label htmlFor="studentId" className="block text-sm font-medium mb-1">
               Student ID
@@ -97,7 +132,7 @@ export default function Home() {
 
           <button
             type="submit"
-            disabled={joining || !roomCode.trim() || !studentId.trim()}
+            disabled={joining || !section || !roomCode.trim() || !studentId.trim()}
             className="w-full py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             {joining ? 'Joining...' : 'Join Game'}

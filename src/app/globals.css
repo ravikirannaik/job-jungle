@@ -31,3 +31,29 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Print styles for report card PDF */
+@media print {
+  body {
+    background: white !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  .print\:hidden {
+    display: none !important;
+  }
+  main {
+    max-width: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  /* Prevent page breaks inside sections */
+  table, .rounded-lg, .mb-4, .mb-6 {
+    break-inside: avoid;
+  }
+  /* Force backgrounds to print */
+  .bg-gray-50, .bg-blue-50, .bg-yellow-50, .bg-green-50 {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}

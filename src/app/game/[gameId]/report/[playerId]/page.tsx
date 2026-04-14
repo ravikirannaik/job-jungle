@@ -141,12 +141,17 @@ export default function ReportCardPage() {
             <h1 className="text-2xl font-bold">Job Jungle Report Card</h1>
             <p className="text-sm text-gray-500">ECON207 Labour Market Simulation</p>
           </div>
-          <button
-            onClick={() => window.print()}
-            className="px-3 py-1.5 bg-gray-800 text-white text-sm rounded hover:bg-gray-900 print:hidden"
-          >
-            Print / PDF
-          </button>
+          <div className="flex gap-2 print:hidden">
+            <button
+              onClick={() => window.print()}
+              className="px-3 py-1.5 bg-gray-800 text-white text-sm rounded hover:bg-gray-900 flex items-center gap-1"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              </svg>
+              Download PDF
+            </button>
+          </div>
         </div>
       </div>
 
