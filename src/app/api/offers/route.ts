@@ -43,17 +43,34 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Already hired this round' }, { status: 400 });
   }
 
-  // Check employer queue capacity
+  // Find all firm partner IDs (for paired employers)
+  const { data: employer } = await supabase
+    .from('players')
+    .select('employer_firm_name')
+    .eq('id', employerId)
+    .single();
+
+  let firmPartnerIds = [employerId];
+  if (employer?.employer_firm_name) {
+    const { data: partners } = await supabase
+      .from('players')
+      .select('id')
+      .eq('game_id', gameId)
+      .eq('employer_firm_name', employer.employer_firm_name);
+    if (partners) firmPartnerIds = partners.map(p => p.id);
+  }
+
+  // Check employer queue capacity (across all firm partners)
   const { count: pendingCount } = await supabase
     .from('offers')
     .select('id', { count: 'exact' })
-    .eq('employer_id', employerId)
+    .in('employer_id', firmPartnerIds)
     .eq('round', game.current_round)
     .eq('status', 'pending');
 
   if ((pendingCount || 0) >= MAX_PENDING_PER_EMPLOYER) {
     return NextResponse.json(
-      { error: `This employer's queue is full (${MAX_PENDING_PER_EMPLOYER} offers). Try another employer or wait.` },
+      { error: `This firm's queue is full (${MAX_PENDING_PER_EMPLOYER} offers). Try another employer or wait.` },
       { status: 400 }
     );
   }
@@ -142,11 +159,28 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ error: 'Worker not found' }, { status: 400 });
     }
 
-    // Count existing hires for this employer this round by skill
+    // Find firm partner IDs for hire counting
+    const { data: offerEmployer } = await supabase
+      .from('players')
+      .select('employer_firm_name, game_id')
+      .eq('id', offer.employer_id)
+      .single();
+
+    let acceptFirmIds = [offer.employer_id];
+    if (offerEmployer?.employer_firm_name) {
+      const { data: firmPartners } = await supabase
+        .from('players')
+        .select('id')
+        .eq('game_id', offerEmployer.game_id)
+        .eq('employer_firm_name', offerEmployer.employer_firm_name);
+      if (firmPartners) acceptFirmIds = firmPartners.map(p => p.id);
+    }
+
+    // Count existing hires for this firm this round by skill
     const { count } = await supabase
       .from('hires')
       .select('id', { count: 'exact' })
-      .eq('employer_id', offer.employer_id)
+      .in('employer_id', acceptFirmIds)
       .eq('round', offer.round)
       .eq('worker_skill', worker.skill);
 

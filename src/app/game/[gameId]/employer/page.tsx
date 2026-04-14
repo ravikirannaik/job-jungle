@@ -21,14 +21,22 @@ export default function EmployerPage() {
     }
   }, [loading, player, game, players, setPlayer]);
 
+  // All partner IDs sharing the same firm name
+  const firmPartnerIds = useMemo(() => {
+    if (!player?.employer_firm_name) return player ? [player.id] : [];
+    return players
+      .filter(p => p.employer_firm_name === player.employer_firm_name)
+      .map(p => p.id);
+  }, [player, players]);
+
   const currentRoundHires = useMemo(
-    () => player ? hires.filter(h => h.round === game?.current_round && h.employer_id === player.id) : [],
-    [hires, game?.current_round, player]
+    () => player ? hires.filter(h => h.round === game?.current_round && firmPartnerIds.includes(h.employer_id)) : [],
+    [hires, game?.current_round, firmPartnerIds, player]
   );
 
   const incomingOffers = useMemo(
-    () => player ? offers.filter(o => o.employer_id === player.id && o.status === 'pending') : [],
-    [offers, player]
+    () => player ? offers.filter(o => firmPartnerIds.includes(o.employer_id) && o.status === 'pending') : [],
+    [offers, firmPartnerIds, player]
   );
 
   // Count hires by skill this round
@@ -53,10 +61,10 @@ export default function EmployerPage() {
     [currentRoundHires]
   );
 
-  // Cumulative profit across all rounds
+  // Cumulative profit across all rounds (firm-wide)
   const allMyHires = useMemo(
-    () => player ? hires.filter(h => h.employer_id === player.id) : [],
-    [hires, player]
+    () => player ? hires.filter(h => firmPartnerIds.includes(h.employer_id)) : [],
+    [hires, firmPartnerIds, player]
   );
 
   const cumulativeProfit = useMemo(() => {

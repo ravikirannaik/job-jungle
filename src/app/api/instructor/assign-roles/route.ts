@@ -3,11 +3,11 @@ import { createServerClient } from '@/lib/supabase/server';
 
 export async function POST(request: Request) {
   const supabase = createServerClient();
-  const { gameId, employers } = await request.json();
-  // employers: [{ playerId: string, firmName: string }]
+  const { gameId, firms } = await request.json();
+  // firms: [{ playerIds: string[], firmName: string }]
 
-  if (!gameId || !employers?.length) {
-    return NextResponse.json({ error: 'gameId and employers required' }, { status: 400 });
+  if (!gameId || !firms?.length) {
+    return NextResponse.json({ error: 'gameId and firms required' }, { status: 400 });
   }
 
   // Validate game is in lobby
@@ -27,12 +27,14 @@ export async function POST(request: Request) {
     .update({ role: 'worker', employer_firm_name: null })
     .eq('game_id', gameId);
 
-  // Set selected players as employers
-  for (const emp of employers) {
-    await supabase
-      .from('players')
-      .update({ role: 'employer', employer_firm_name: emp.firmName })
-      .eq('id', emp.playerId);
+  // Set each firm's players as employers with shared firm name
+  for (const firm of firms) {
+    for (const playerId of firm.playerIds) {
+      await supabase
+        .from('players')
+        .update({ role: 'employer', employer_firm_name: firm.firmName })
+        .eq('id', playerId);
+    }
   }
 
   // Fetch updated players

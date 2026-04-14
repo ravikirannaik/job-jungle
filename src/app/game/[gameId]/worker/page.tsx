@@ -25,10 +25,21 @@ export default function WorkerPage() {
     }
   }, [loading, player, game, players, setPlayer]);
 
-  const employers = useMemo(
+  const allEmployers = useMemo(
     () => players.filter(p => p.role === 'employer'),
     [players]
   );
+
+  // Deduplicate employers by firm name (pairs share a firm)
+  const firms = useMemo(() => {
+    const map = new Map<string, { firmName: string; playerIds: string[] }>();
+    for (const emp of allEmployers) {
+      const name = emp.employer_firm_name || emp.name;
+      if (!map.has(name)) map.set(name, { firmName: name, playerIds: [] });
+      map.get(name)!.playerIds.push(emp.id);
+    }
+    return Array.from(map.values());
+  }, [allEmployers]);
 
   const currentRoundHires = useMemo(
     () => hires.filter(h => h.round === game?.current_round),
@@ -56,14 +67,14 @@ export default function WorkerPage() {
     [hires, player]
   );
 
-  // Count hires per employer this round for display
-  function getEmployerHireCount(empId: string) {
-    return currentRoundHires.filter(h => h.employer_id === empId).length;
+  // Count hires per firm this round
+  function getFirmHireCount(playerIds: string[]) {
+    return currentRoundHires.filter(h => playerIds.includes(h.employer_id)).length;
   }
 
-  // Count pending offers per employer this round
-  function getEmployerPendingCount(empId: string) {
-    return offers.filter(o => o.employer_id === empId && o.status === 'pending').length;
+  // Count pending offers per firm this round
+  function getFirmPendingCount(playerIds: string[]) {
+    return offers.filter(o => playerIds.includes(o.employer_id) && o.status === 'pending').length;
   }
 
   if (loading) {
@@ -98,6 +109,10 @@ export default function WorkerPage() {
     setSending(true);
     setError('');
 
+    // Resolve firm name to first player ID for the offer
+    const firm = firms.find(f => f.firmName === selectedEmployer);
+    if (!firm) { setError('Firm not found'); setSending(false); return; }
+
     try {
       const res = await fetch('/api/offers', {
         method: 'POST',
@@ -105,7 +120,7 @@ export default function WorkerPage() {
         body: JSON.stringify({
           gameId: game.id,
           workerId: player.id,
-          employerId: selectedEmployer,
+          employerId: firm.playerIds[0],
           wage: parseInt(wage),
         }),
       });
@@ -235,7 +250,7 @@ export default function WorkerPage() {
               <div className="p-4 bg-green-50 border-2 border-green-300 rounded-lg text-center">
                 <p className="text-green-700 font-bold text-lg">Hired!</p>
                 <p className="text-sm text-gray-600 mt-1">
-                  {employers.find(e => e.id === myHireThisRound.employer_id)?.employer_firm_name} at ${myHireThisRound.wage}
+                  {allEmployers.find(e => e.id === myHireThisRound.employer_id)?.employer_firm_name} at ${myHireThisRound.wage}
                 </p>
                 <p className="text-xs text-gray-500 mt-2">Wait for the round to end.</p>
               </div>
@@ -248,7 +263,7 @@ export default function WorkerPage() {
                   <div>
                     <p className="font-medium text-orange-700">Offer Pending</p>
                     <p className="text-sm text-gray-600">
-                      ${myPendingOffer.wage} to {employers.find(e => e.id === myPendingOffer.employer_id)?.employer_firm_name}
+                      ${myPendingOffer.wage} to {allEmployers.find(e => e.id === myPendingOffer.employer_id)?.employer_firm_name}
                     </p>
                   </div>
                   <button
@@ -273,15 +288,15 @@ export default function WorkerPage() {
               <div>
                 <h3 className="font-semibold mb-2">Available Employers</h3>
                 <div className="space-y-2">
-                  {employers.map(emp => {
-                    const hireCount = getEmployerHireCount(emp.id);
-                    const pendingCount = getEmployerPendingCount(emp.id);
+                  {firms.map(firm => {
+                    const hireCount = getFirmHireCount(firm.playerIds);
+                    const pendingCount = getFirmPendingCount(firm.playerIds);
                     const queueFull = pendingCount >= MAX_PENDING_PER_EMPLOYER;
-                    const isSelected = selectedEmployer === emp.id;
+                    const isSelected = selectedEmployer === firm.firmName;
                     return (
-                      <div key={emp.id}>
+                      <div key={firm.firmName}>
                         <button
-                          onClick={() => !queueFull && setSelectedEmployer(isSelected ? null : emp.id)}
+                          onClick={() => !queueFull && setSelectedEmployer(isSelected ? null : firm.firmName)}
                           disabled={queueFull}
                           className={`w-full p-3 rounded-lg border-2 text-left transition-colors ${
                             queueFull
@@ -292,7 +307,7 @@ export default function WorkerPage() {
                           }`}
                         >
                           <div className="flex justify-between items-center">
-                            <span className="font-medium">{emp.employer_firm_name}</span>
+                            <span className="font-medium">{firm.firmName}</span>
                             <div className="flex items-center gap-2">
                               <span className="text-xs text-gray-500">{hireCount} hired</span>
                               <span className={`text-xs px-1.5 py-0.5 rounded ${
@@ -412,7 +427,7 @@ export default function WorkerPage() {
                       <td className="p-1">{round}</td>
                       <td className="p-1">
                         {hire
-                          ? employers.find(e => e.id === hire.employer_id)?.employer_firm_name || '?'
+                          ? allEmployers.find(e => e.id === hire.employer_id)?.employer_firm_name || '?'
                           : <span className="text-gray-400">Unemployed (PA)</span>
                         }
                       </td>

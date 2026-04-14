@@ -7,14 +7,31 @@ import { FIRM_NAMES } from '@/lib/constants';
 import { getPxMP, calculateRevenue } from '@/lib/game-logic';
 import type { Player } from '@/lib/types';
 
+interface FirmDraft {
+  playerIds: string[];
+  firmName: string;
+}
+
 export default function InstructorDashboard() {
   const { game, players, offers, hires, loading } = useGame();
   const remaining = useTimer(game?.round_end_at ?? null);
-  const [selectedEmployers, setSelectedEmployers] = useState<Set<string>>(new Set());
+  const [firms, setFirms] = useState<FirmDraft[]>([]);
+  const [pendingPair, setPendingPair] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
 
   const workers = useMemo(() => players.filter(p => p.role === 'worker'), [players]);
   const employers = useMemo(() => players.filter(p => p.role === 'employer'), [players]);
+
+  // Group employers by firm name for display
+  const firmGroups = useMemo(() => {
+    const map = new Map<string, Player[]>();
+    for (const emp of employers) {
+      const name = emp.employer_firm_name || 'Unknown';
+      if (!map.has(name)) map.set(name, []);
+      map.get(name)!.push(emp);
+    }
+    return Array.from(map.entries()).map(([name, members]) => ({ name, members }));
+  }, [employers]);
 
   const currentRoundHires = useMemo(
     () => hires.filter(h => h.round === game?.current_round),
@@ -29,6 +46,18 @@ export default function InstructorDashboard() {
   const hiredWorkerIds = useMemo(
     () => new Set(currentRoundHires.map(h => h.worker_id)),
     [currentRoundHires]
+  );
+
+  // Players already assigned to a draft firm
+  const assignedPlayerIds = useMemo(
+    () => new Set(firms.flatMap(f => f.playerIds)),
+    [firms]
+  );
+
+  // Unassigned players (for firm builder)
+  const unassignedPlayers = useMemo(
+    () => players.filter(p => !assignedPlayerIds.has(p.id) && p.role !== 'employer'),
+    [players, assignedPlayerIds]
   );
 
   if (loading || !game) {
@@ -53,21 +82,41 @@ export default function InstructorDashboard() {
     setActionLoading(false);
   }
 
-  function toggleEmployer(playerId: string) {
-    setSelectedEmployers(prev => {
-      const next = new Set(prev);
-      if (next.has(playerId)) next.delete(playerId);
-      else next.add(playerId);
-      return next;
-    });
+  function handlePlayerClick(playerId: string) {
+    if (pendingPair) {
+      // Second click — complete the pair
+      if (playerId === pendingPair) {
+        // Clicked same player again — make solo firm
+        setFirms(prev => [...prev, {
+          playerIds: [pendingPair],
+          firmName: FIRM_NAMES[prev.length] || `Firm ${prev.length + 1}`,
+        }]);
+      } else {
+        // Pair two students
+        setFirms(prev => [...prev, {
+          playerIds: [pendingPair, playerId],
+          firmName: FIRM_NAMES[prev.length] || `Firm ${prev.length + 1}`,
+        }]);
+      }
+      setPendingPair(null);
+    } else {
+      // First click — start a pair
+      setPendingPair(playerId);
+    }
   }
 
-  async function assignRoles() {
-    const empList = Array.from(selectedEmployers).map((id, i) => ({
-      playerId: id,
-      firmName: FIRM_NAMES[i] || `Firm ${i + 1}`,
-    }));
-    await apiCall('/api/instructor/assign-roles', { gameId: game!.id, employers: empList });
+  function removeFirm(index: number) {
+    setFirms(prev => prev.filter((_, i) => i !== index));
+  }
+
+  function getPlayerName(id: string) {
+    return players.find(p => p.id === id)?.name || '?';
+  }
+
+  async function assignFirms() {
+    await apiCall('/api/instructor/assign-roles', { gameId: game!.id, firms });
+    setFirms([]);
+    setPendingPair(null);
   }
 
   async function startRound() {
@@ -78,12 +127,13 @@ export default function InstructorDashboard() {
     await apiCall('/api/instructor/end-round', { gameId: game!.id });
   }
 
-  // Employer profit calculation for summary
-  function getEmployerProfit(employerId: string) {
-    const empHires = currentRoundHires.filter(h => h.employer_id === employerId);
-    const revenue = empHires.reduce((sum, h) => sum + h.mp_value, 0);
-    const wages = empHires.reduce((sum, h) => sum + h.wage, 0);
-    return { revenue, wages, profit: revenue - wages, count: empHires.length };
+  // Employer profit calculation — by firm (sum all partners' hires)
+  function getFirmProfit(firmName: string) {
+    const firmPlayerIds = employers.filter(e => e.employer_firm_name === firmName).map(e => e.id);
+    const firmHires = currentRoundHires.filter(h => firmPlayerIds.includes(h.employer_id));
+    const revenue = firmHires.reduce((sum, h) => sum + h.mp_value, 0);
+    const wages = firmHires.reduce((sum, h) => sum + h.wage, 0);
+    return { revenue, wages, profit: revenue - wages, count: firmHires.length };
   }
 
   return (
@@ -123,11 +173,11 @@ export default function InstructorDashboard() {
         {game.status === 'lobby' && (
           <>
             <button
-              onClick={assignRoles}
-              disabled={actionLoading || selectedEmployers.size === 0}
+              onClick={assignFirms}
+              disabled={actionLoading || firms.length === 0}
               className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 font-medium"
             >
-              Assign {selectedEmployers.size} as Employers
+              Assign {firms.length} Firm{firms.length !== 1 ? 's' : ''}
             </button>
             <button
               onClick={startRound}
@@ -180,6 +230,71 @@ export default function InstructorDashboard() {
         )}
       </div>
 
+      {/* Firm Builder (lobby only) */}
+      {game.status === 'lobby' && (
+        <div className="mb-6">
+          <h3 className="font-semibold mb-2">Build Firms</h3>
+          <p className="text-xs text-gray-500 mb-3">
+            Click one student for a solo firm, or click two students in a row to pair them.
+            {pendingPair && (
+              <span className="text-mu-base font-medium ml-1">
+                Pairing with {getPlayerName(pendingPair)}... click a second student or click the same name for solo.
+              </span>
+            )}
+          </p>
+
+          {/* Draft firms */}
+          {firms.length > 0 && (
+            <div className="flex flex-wrap gap-2 mb-3">
+              {firms.map((firm, i) => (
+                <div key={i} className="flex items-center gap-1 px-3 py-1.5 bg-mu-base-light border border-mu-base rounded-lg text-sm">
+                  <span className="font-medium text-mu-base">{firm.firmName}:</span>
+                  <span>{firm.playerIds.map(id => getPlayerName(id)).join(' & ')}</span>
+                  <button onClick={() => removeFirm(i)} className="ml-1 text-red-400 hover:text-red-600 font-bold">x</button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Already assigned employers (from previous assign) */}
+          {employers.length > 0 && firms.length === 0 && (
+            <div className="flex flex-wrap gap-2 mb-3">
+              {firmGroups.map(fg => (
+                <div key={fg.name} className="flex items-center gap-1 px-3 py-1.5 bg-green-50 border border-green-300 rounded-lg text-sm">
+                  <span className="font-medium text-green-700">{fg.name}:</span>
+                  <span>{fg.members.map(m => m.name).join(' & ')}</span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Unassigned player grid */}
+          <div className="grid grid-cols-3 md:grid-cols-4 gap-2">
+            {unassignedPlayers.map(p => (
+              <button
+                key={p.id}
+                onClick={() => handlePlayerClick(p.id)}
+                className={`p-2 rounded-lg border-2 text-sm text-left transition-colors ${
+                  pendingPair === p.id
+                    ? 'border-mu-base bg-mu-base text-white'
+                    : 'border-gray-200 hover:border-mu-base hover:bg-mu-base-light'
+                }`}
+              >
+                {p.name}
+              </button>
+            ))}
+          </div>
+          {pendingPair && (
+            <button
+              onClick={() => setPendingPair(null)}
+              className="mt-2 text-xs text-gray-500 hover:text-red-500"
+            >
+              Cancel pairing
+            </button>
+          )}
+        </div>
+      )}
+
       {/* Round Activity (during active round) */}
       {game.status === 'round' && (
         <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
@@ -205,16 +320,19 @@ export default function InstructorDashboard() {
         </div>
       )}
 
-      {/* Employer Summary */}
-      {employers.length > 0 && game.current_round > 0 && (
+      {/* Employer Summary — grouped by firm */}
+      {firmGroups.length > 0 && game.current_round > 0 && (
         <div className="mb-6">
-          <h3 className="font-semibold mb-2">Employers</h3>
+          <h3 className="font-semibold mb-2">Firms</h3>
           <div className="space-y-2">
-            {employers.map(emp => {
-              const stats = getEmployerProfit(emp.id);
+            {firmGroups.map(fg => {
+              const stats = getFirmProfit(fg.name);
               return (
-                <div key={emp.id} className="flex items-center justify-between p-3 bg-mu-base-light rounded-lg text-sm">
-                  <span className="font-medium">{emp.employer_firm_name} ({emp.name})</span>
+                <div key={fg.name} className="flex items-center justify-between p-3 bg-mu-base-light rounded-lg text-sm">
+                  <div>
+                    <span className="font-medium">{fg.name}</span>
+                    <span className="text-gray-500 ml-1">({fg.members.map(m => m.name).join(' & ')})</span>
+                  </div>
                   <div className="flex gap-4 text-gray-600">
                     <span>{stats.count} hired</span>
                     <span>Rev: ${stats.revenue}</span>
@@ -239,7 +357,6 @@ export default function InstructorDashboard() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b text-left">
-                {game.status === 'lobby' && <th className="p-2">Employer?</th>}
                 <th className="p-2">Name</th>
                 <th className="p-2">Role</th>
                 <th className="p-2">Skill</th>
@@ -251,16 +368,6 @@ export default function InstructorDashboard() {
             <tbody>
               {players.map(p => (
                 <tr key={p.id} className="border-b hover:bg-gray-50">
-                  {game.status === 'lobby' && (
-                    <td className="p-2">
-                      <input
-                        type="checkbox"
-                        checked={selectedEmployers.has(p.id) || p.role === 'employer'}
-                        onChange={() => toggleEmployer(p.id)}
-                        className="w-4 h-4"
-                      />
-                    </td>
-                  )}
                   <td className="p-2 font-medium">{p.name}</td>
                   <td className="p-2">
                     <span className={`px-2 py-0.5 rounded text-xs font-medium ${

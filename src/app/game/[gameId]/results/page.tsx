@@ -17,6 +17,18 @@ export default function ResultsPage() {
   const workers = useMemo(() => players.filter(p => p.role === 'worker' || p.became_employer_round), [players]);
   const employers = useMemo(() => players.filter(p => p.role === 'employer'), [players]);
 
+  // Unique firms (deduplicated from employer pairs)
+  const firmList = useMemo(() => {
+    const map = new Map<string, { firmName: string; memberIds: string[]; members: Player[] }>();
+    for (const emp of employers) {
+      const name = emp.employer_firm_name || emp.name;
+      if (!map.has(name)) map.set(name, { firmName: name, memberIds: [], members: [] });
+      map.get(name)!.memberIds.push(emp.id);
+      map.get(name)!.members.push(emp);
+    }
+    return Array.from(map.values());
+  }, [employers]);
+
   // --- Data for charts ---
 
   // 1. Wage convergence by round
@@ -45,21 +57,21 @@ export default function ResultsPage() {
     }));
   }, [wageByRound]);
 
-  // 3. Employer profit by round
+  // 3. Employer profit by round (grouped by firm)
   const employerProfitData = useMemo(() => {
     if (!game) return [];
     const rounds = Array.from({ length: game.current_round }, (_, i) => i + 1);
     return rounds.map(round => {
       const entry: Record<string, number | string> = { round };
-      for (const emp of employers) {
-        const empHires = hires.filter(h => h.employer_id === emp.id && h.round === round);
-        const revenue = empHires.reduce((s, h) => s + h.mp_value, 0);
-        const wages = empHires.reduce((s, h) => s + h.wage, 0);
-        entry[emp.employer_firm_name || emp.name] = revenue - wages;
+      for (const firm of firmList) {
+        const firmHires = hires.filter(h => firm.memberIds.includes(h.employer_id) && h.round === round);
+        const revenue = firmHires.reduce((s, h) => s + h.mp_value, 0);
+        const wages = firmHires.reduce((s, h) => s + h.wage, 0);
+        entry[firm.firmName] = revenue - wages;
       }
       return entry;
     });
-  }, [hires, employers, game]);
+  }, [hires, firmList, game]);
 
   // 4. Endowment vs final income (workers only)
   const endowmentVsIncome = useMemo(() => {
@@ -99,13 +111,18 @@ export default function ResultsPage() {
   );
 
   const employerLeaderboard = useMemo(() => {
-    return employers.map(emp => {
-      const empHires = hires.filter(h => h.employer_id === emp.id);
-      const totalRevenue = empHires.reduce((s, h) => s + h.mp_value, 0);
-      const totalWages = empHires.reduce((s, h) => s + h.wage, 0);
-      return { ...emp, profit: totalRevenue - totalWages };
+    return firmList.map(firm => {
+      const firmHires = hires.filter(h => firm.memberIds.includes(h.employer_id));
+      const totalRevenue = firmHires.reduce((s, h) => s + h.mp_value, 0);
+      const totalWages = firmHires.reduce((s, h) => s + h.wage, 0);
+      return {
+        firmName: firm.firmName,
+        memberNames: firm.members.map(m => m.name).join(' & '),
+        members: firm.members,
+        profit: totalRevenue - totalWages,
+      };
     }).sort((a, b) => b.profit - a.profit);
-  }, [employers, hires]);
+  }, [firmList, hires]);
 
   // CSV Export
   function exportCSV() {
@@ -177,13 +194,13 @@ export default function ResultsPage() {
           </div>
         </div>
         <div>
-          <h2 className="font-bold mb-2">Top Employers</h2>
+          <h2 className="font-bold mb-2">Top Firms</h2>
           <div className="space-y-1">
             {employerLeaderboard.map((e, i) => (
-              <div key={e.id} className={`flex justify-between p-2 rounded text-sm ${
+              <div key={e.firmName} className={`flex justify-between p-2 rounded text-sm ${
                 i === 0 ? 'bg-yellow-100 font-bold' : 'bg-gray-50'
               }`}>
-                <span>{i + 1}. {e.employer_firm_name} ({e.name})</span>
+                <span>{i + 1}. {e.firmName} ({e.memberNames})</span>
                 <span>${e.profit}</span>
               </div>
             ))}
@@ -236,11 +253,11 @@ export default function ResultsPage() {
             <Tooltip />
             <Legend />
             <ReferenceLine y={0} stroke="#999" />
-            {employers.map((emp, i) => (
+            {firmList.map((firm, i) => (
               <Line
-                key={emp.id}
+                key={firm.firmName}
                 type="monotone"
-                dataKey={emp.employer_firm_name || emp.name}
+                dataKey={firm.firmName}
                 stroke={empColors[i % empColors.length]}
                 strokeWidth={2}
                 connectNulls
@@ -294,7 +311,7 @@ export default function ResultsPage() {
         <h2 className="font-bold mb-2">Report Cards</h2>
         <p className="text-xs text-gray-500 mb-3">Click any name to view their personalized round-by-round report card.</p>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-          {[...workerLeaderboard, ...employerLeaderboard].map(p => {
+          {[...workerLeaderboard, ...employers].map(p => {
             const roster = findByName(p.name);
             return (
               <a
