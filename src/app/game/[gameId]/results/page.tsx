@@ -167,7 +167,7 @@ export default function ResultsPage() {
               }`}>
                 <span>
                   {i + 1}. {w.name}
-                  <span className={`ml-1 text-xs ${w.skill === 'blue' ? 'text-blue-600' : 'text-pink-600'}`}>
+                  <span className={`ml-1 text-xs ${w.skill === 'blue' ? 'text-mu-base' : 'text-mu-med'}`}>
                     ({w.skill})
                   </span>
                 </span>
@@ -202,10 +202,10 @@ export default function ResultsPage() {
             <YAxis label={{ value: 'Wage ($)', angle: -90, position: 'insideLeft' }} />
             <Tooltip />
             <Legend />
-            <ReferenceLine y={PINK_PxMP[0]} stroke="#f472b6" strokeDasharray="5 5" label="Pink 1st MP" />
-            <ReferenceLine y={BLUE_PxMP[0]} stroke="#60a5fa" strokeDasharray="5 5" label="Blue 1st MP" />
-            <Line type="monotone" dataKey="avgPink" stroke="#ec4899" strokeWidth={2} name="Avg Pink Wage" connectNulls />
-            <Line type="monotone" dataKey="avgBlue" stroke="#3b82f6" strokeWidth={2} name="Avg Blue Wage" connectNulls />
+            <ReferenceLine y={PINK_PxMP[0]} stroke="#F01928" strokeDasharray="5 5" label="Pink 1st MP" />
+            <ReferenceLine y={BLUE_PxMP[0]} stroke="#0000DC" strokeDasharray="5 5" label="Blue 1st MP" />
+            <Line type="monotone" dataKey="avgPink" stroke="#F01928" strokeWidth={2} name="Avg Pink Wage" connectNulls />
+            <Line type="monotone" dataKey="avgBlue" stroke="#0000DC" strokeWidth={2} name="Avg Blue Wage" connectNulls />
           </LineChart>
         </ResponsiveContainer>
       </div>
@@ -219,7 +219,7 @@ export default function ResultsPage() {
             <XAxis dataKey="round" />
             <YAxis label={{ value: 'Premium ($)', angle: -90, position: 'insideLeft' }} />
             <Tooltip />
-            <Bar dataKey="premium" fill="#8b5cf6" name="Wage Premium" />
+            <Bar dataKey="premium" fill="#9100DC" name="Wage Premium" />
           </BarChart>
         </ResponsiveContainer>
       </div>
@@ -262,12 +262,12 @@ export default function ResultsPage() {
             <Tooltip cursor={{ strokeDasharray: '3 3' }} />
             <Scatter
               data={endowmentVsIncome.filter(d => d.skill === 'pink')}
-              fill="#ec4899"
+              fill="#F01928"
               name="Pink"
             />
             <Scatter
               data={endowmentVsIncome.filter(d => d.skill === 'blue')}
-              fill="#3b82f6"
+              fill="#0000DC"
               name="Blue"
             />
             <Legend />
@@ -284,7 +284,7 @@ export default function ResultsPage() {
             <XAxis dataKey="round" />
             <YAxis label={{ value: 'Rate (%)', angle: -90, position: 'insideLeft' }} />
             <Tooltip />
-            <Bar dataKey="rate" fill="#f59e0b" name="Unemployment %" />
+            <Bar dataKey="rate" fill="#FF7300" name="Unemployment %" />
           </BarChart>
         </ResponsiveContainer>
       </div>
@@ -301,14 +301,14 @@ export default function ResultsPage() {
                 key={p.id}
                 href={`/game/${game.id}/report/${p.id}`}
                 target="_blank"
-                className="flex items-center justify-between p-2 bg-gray-50 rounded hover:bg-blue-50 text-sm transition-colors"
+                className="flex items-center justify-between p-2 bg-gray-50 rounded hover:bg-mu-base-light text-sm transition-colors"
               >
                 <span className="truncate">
                   {p.name}
                   {roster && <span className="text-gray-400 ml-1 text-xs">({roster.studentId})</span>}
                 </span>
                 <span className={`text-xs px-1.5 py-0.5 rounded ${
-                  p.role === 'employer' ? 'bg-blue-100 text-blue-700' : 'bg-gray-200 text-gray-600'
+                  p.role === 'employer' ? 'bg-mu-base-light text-mu-base' : 'bg-gray-200 text-gray-600'
                 }`}>
                   {p.role === 'employer' ? 'Emp' : p.skill === 'blue' ? 'Blue' : 'Pink'}
                 </span>
@@ -343,7 +343,7 @@ export default function ResultsPage() {
                     <td className="p-2">{h.round}</td>
                     <td className="p-2">{w?.name}</td>
                     <td className="p-2">
-                      <span className={h.worker_skill === 'blue' ? 'text-blue-600' : 'text-pink-600'}>
+                      <span className={h.worker_skill === 'blue' ? 'text-mu-base' : 'text-mu-med'}>
                         {h.worker_skill}
                       </span>
                     </td>

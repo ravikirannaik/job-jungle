@@ -99,7 +99,7 @@ export default function EmployerPage() {
       <div className="flex-1 flex items-center justify-center p-6">
         <div className="text-center">
           <p className="text-gray-500 mb-4">Session expired. Please rejoin.</p>
-          <a href="/" className="text-blue-600 hover:underline">Go to home</a>
+          <a href="/" className="text-mu-base hover:underline">Go to home</a>
         </div>
       </div>
     );
@@ -136,7 +136,7 @@ export default function EmployerPage() {
       </div>
 
       {/* Employer identity bar */}
-      <div className="bg-blue-500 p-2 text-center text-white font-semibold text-sm">
+      <div className="bg-mu-base p-2 text-center text-white font-semibold text-sm">
         EMPLOYER — {player.employer_firm_name}
       </div>
 
@@ -159,7 +159,7 @@ export default function EmployerPage() {
                 My Report Card
               </a>
               <a href={`/game/${game.id}/results`}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm">
+                className="px-4 py-2 bg-mu-base text-white rounded-lg text-sm">
                 View Results
               </a>
             </div>
@@ -173,9 +173,9 @@ export default function EmployerPage() {
               Output & MP Schedule (P=${KITE_PRICE}/kite)
             </summary>
             <div className="grid grid-cols-2 gap-2 text-xs">
-              <div className="p-2 bg-pink-50 rounded">
-                <div className="font-semibold text-pink-700 mb-1">Pink (Unskilled)</div>
-                <div className="font-medium text-pink-600 mb-1">
+              <div className="p-2 bg-mu-med-light rounded">
+                <div className="font-semibold text-mu-med mb-1">Pink (Unskilled)</div>
+                <div className="font-medium text-mu-med mb-1">
                   Next hire = #{pinkHired + 1} (max wage: ${nextPinkMP})
                 </div>
                 {PINK_PxMP.map((v, i) => (
@@ -185,9 +185,9 @@ export default function EmployerPage() {
                   </div>
                 ))}
               </div>
-              <div className="p-2 bg-blue-50 rounded">
-                <div className="font-semibold text-blue-700 mb-1">Blue (Skilled)</div>
-                <div className="font-medium text-blue-600 mb-1">
+              <div className="p-2 bg-mu-base-light rounded">
+                <div className="font-semibold text-mu-base mb-1">Blue (Skilled)</div>
+                <div className="font-medium text-mu-base mb-1">
                   Next hire = #{blueHired + 1} (max wage: ${nextBlueMP})
                 </div>
                 {BLUE_PxMP.map((v, i) => (
@@ -226,7 +226,7 @@ export default function EmployerPage() {
                         <div>
                           <span className="font-medium">{getWorkerName(offer.worker_id)}</span>
                           <span className={`ml-2 px-1.5 py-0.5 rounded text-xs ${
-                            workerSkill === 'blue' ? 'bg-blue-200 text-blue-800' : 'bg-pink-200 text-pink-800'
+                            workerSkill === 'blue' ? 'bg-mu-base-light text-mu-base' : 'bg-mu-med-light text-mu-med'
                           }`}>
                             {workerSkill}
                           </span>
@@ -270,7 +270,7 @@ export default function EmployerPage() {
               <div key={h.id} className="flex justify-between text-sm py-1 border-b border-gray-200 last:border-0">
                 <span>
                   {getWorkerName(h.worker_id)}
-                  <span className={`ml-1 text-xs ${h.worker_skill === 'blue' ? 'text-blue-600' : 'text-pink-600'}`}>
+                  <span className={`ml-1 text-xs ${h.worker_skill === 'blue' ? 'text-mu-base' : 'text-mu-med'}`}>
                     ({h.worker_skill})
                   </span>
                 </span>

@@ -73,7 +73,7 @@ export default function WorkerPage() {
       <div className="flex-1 flex items-center justify-center p-6">
         <div className="text-center">
           <p className="text-gray-500 mb-4">Session expired. Please rejoin the game.</p>
-          <a href="/" className="text-blue-600 hover:underline">Go to home</a>
+          <a href="/" className="text-mu-base hover:underline">Go to home</a>
         </div>
       </div>
     );
@@ -188,7 +188,7 @@ export default function WorkerPage() {
 
       {/* Skill Badge */}
       <div className={`p-3 text-center text-white font-semibold text-sm ${
-        player.skill === 'blue' ? 'bg-blue-500' : 'bg-pink-400'
+        player.skill === 'blue' ? 'bg-mu-base' : 'bg-mu-med'
       }`}>
         {player.skill === 'blue' ? 'BLUE CARD - Skilled' : 'PINK CARD - Unskilled'}
         <span className="ml-2 opacity-75">({player.name})</span>
@@ -214,7 +214,7 @@ export default function WorkerPage() {
                 My Report Card
               </a>
               <a href={`/game/${game.id}/results`}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm">
+                className="px-4 py-2 bg-mu-base text-white rounded-lg text-sm">
                 View Results
               </a>
             </div>
@@ -276,7 +276,7 @@ export default function WorkerPage() {
                           onClick={() => setSelectedEmployer(isSelected ? null : emp.id)}
                           className={`w-full p-3 rounded-lg border-2 text-left transition-colors ${
                             isSelected
-                              ? 'border-blue-500 bg-blue-50'
+                              ? 'border-mu-base bg-mu-base-light'
                               : 'border-gray-200 hover:border-gray-300'
                           }`}
                         >
@@ -287,7 +287,7 @@ export default function WorkerPage() {
                         </button>
 
                         {isSelected && (
-                          <div className="mt-2 p-3 bg-blue-50 rounded-lg flex gap-2 items-end">
+                          <div className="mt-2 p-3 bg-mu-base-light rounded-lg flex gap-2 items-end">
                             <div className="flex-1">
                               <label className="text-xs text-gray-500 block mb-1">Your wage demand ($)</label>
                               <input
@@ -303,7 +303,7 @@ export default function WorkerPage() {
                             <button
                               onClick={sendOffer}
                               disabled={sending || !wage || parseInt(wage) < 0}
-                              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 font-medium whitespace-nowrap"
+                              className="px-4 py-2 bg-mu-base text-white rounded-lg hover:opacity-90 disabled:opacity-50 font-medium whitespace-nowrap"
                             >
                               {sending ? '...' : 'Send Offer'}
                             </button>

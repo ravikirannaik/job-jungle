@@ -58,7 +58,7 @@ export default function CreateGame() {
               placeholder="Prof. Naik"
               value={instructorName}
               onChange={e => setInstructorName(e.target.value)}
-              className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
+              className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-mu-base focus:outline-none"
             />
           </div>
 

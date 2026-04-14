@@ -173,7 +173,7 @@ export default function InstructorDashboard() {
         {game.status === 'ended' && (
           <a
             href={`/game/${game.id}/results`}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
+            className="px-4 py-2 bg-mu-base text-white rounded-lg hover:opacity-90 font-medium"
           >
             View Results
           </a>
@@ -213,7 +213,7 @@ export default function InstructorDashboard() {
             {employers.map(emp => {
               const stats = getEmployerProfit(emp.id);
               return (
-                <div key={emp.id} className="flex items-center justify-between p-3 bg-blue-50 rounded-lg text-sm">
+                <div key={emp.id} className="flex items-center justify-between p-3 bg-mu-base-light rounded-lg text-sm">
                   <span className="font-medium">{emp.employer_firm_name} ({emp.name})</span>
                   <div className="flex gap-4 text-gray-600">
                     <span>{stats.count} hired</span>
@@ -264,14 +264,14 @@ export default function InstructorDashboard() {
                   <td className="p-2 font-medium">{p.name}</td>
                   <td className="p-2">
                     <span className={`px-2 py-0.5 rounded text-xs font-medium ${
-                      p.role === 'employer' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700'
+                      p.role === 'employer' ? 'bg-mu-base-light text-mu-base' : 'bg-gray-100 text-gray-700'
                     }`}>
                       {p.role === 'employer' ? p.employer_firm_name || 'Employer' : 'Worker'}
                     </span>
                   </td>
                   <td className="p-2">
                     <span className={`px-2 py-0.5 rounded text-xs font-medium ${
-                      p.skill === 'blue' ? 'bg-blue-200 text-blue-800' : 'bg-pink-200 text-pink-800'
+                      p.skill === 'blue' ? 'bg-mu-base-light text-mu-base' : 'bg-mu-med-light text-mu-med'
                     }`}>
                       {p.skill === 'blue' ? 'Blue (Skilled)' : 'Pink (Unskilled)'}
                     </span>
@@ -287,7 +287,7 @@ export default function InstructorDashboard() {
                           <span className="text-orange-500">Looking</span>
                         )
                       ) : (
-                        <span className="text-blue-600">
+                        <span className="text-mu-base">
                           {currentRoundHires.filter(h => h.employer_id === p.id).length} hired
                         </span>
                       )}
@@ -307,7 +307,7 @@ function StatusBadge({ status }: { status: string }) {
   const colors: Record<string, string> = {
     lobby: 'bg-yellow-100 text-yellow-800',
     round: 'bg-green-100 text-green-800',
-    between_rounds: 'bg-blue-100 text-blue-800',
+    between_rounds: 'bg-mu-base-light text-mu-base',
     ended: 'bg-gray-100 text-gray-800',
   };
   const labels: Record<string, string> = {

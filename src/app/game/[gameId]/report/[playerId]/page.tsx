@@ -173,11 +173,11 @@ export default function ReportCardPage() {
           <div className="text-xs text-gray-500">Role</div>
           <div className="font-semibold">
             {isWorker ? (
-              <span className={player.skill === 'blue' ? 'text-blue-600' : 'text-pink-600'}>
+              <span className={player.skill === 'blue' ? 'text-mu-base' : 'text-mu-med'}>
                 Worker ({player.skill === 'blue' ? 'Skilled' : 'Unskilled'})
               </span>
             ) : (
-              <span className="text-blue-700">Employer — {player.employer_firm_name}</span>
+              <span className="text-mu-base">Employer — {player.employer_firm_name}</span>
             )}
           </div>
         </div>
@@ -261,7 +261,7 @@ export default function ReportCardPage() {
 
         {!isWorker && employerRoundData.map(r => (
           <div key={r.round} className="mb-4">
-            <div className="flex items-center justify-between bg-blue-50 p-2 rounded-t font-medium text-sm">
+            <div className="flex items-center justify-between bg-mu-base-light p-2 rounded-t font-medium text-sm">
               <span>Round {r.round}</span>
               <span className={r.profit >= 0 ? 'text-green-600' : 'text-red-600'}>
                 Profit: ${r.profit}
@@ -283,7 +283,7 @@ export default function ReportCardPage() {
                     <tr key={i} className="border-b last:border-0">
                       <td className="p-1.5">{h.workerName}</td>
                       <td className="p-1.5">
-                        <span className={h.skill === 'blue' ? 'text-blue-600' : 'text-pink-600'}>
+                        <span className={h.skill === 'blue' ? 'text-mu-base' : 'text-mu-med'}>
                           {h.skill}
                         </span>
                       </td>

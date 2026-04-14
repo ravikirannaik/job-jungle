@@ -52,7 +52,7 @@ export default function Home() {
       <div className="w-full max-w-md space-y-8">
         {/* Title */}
         <div className="text-center">
-          <h1 className="text-4xl font-bold tracking-tight">Job Jungle</h1>
+          <h1 className="text-4xl font-bold tracking-tight text-mu-base">Job Jungle</h1>
           <p className="mt-2 text-gray-500">
             Labour Market Simulation — ECON207
           </p>
@@ -69,7 +69,7 @@ export default function Home() {
                 onClick={() => setSection('A')}
                 className={`py-3 rounded-lg border-2 font-semibold text-lg transition-colors ${
                   section === 'A'
-                    ? 'border-blue-500 bg-blue-50 text-blue-700'
+                    ? 'border-mu-base bg-mu-base-light text-mu-base'
                     : 'border-gray-300 text-gray-500 hover:border-gray-400'
                 }`}
               >
@@ -80,7 +80,7 @@ export default function Home() {
                 onClick={() => setSection('B')}
                 className={`py-3 rounded-lg border-2 font-semibold text-lg transition-colors ${
                   section === 'B'
-                    ? 'border-blue-500 bg-blue-50 text-blue-700'
+                    ? 'border-mu-base bg-mu-base-light text-mu-base'
                     : 'border-gray-300 text-gray-500 hover:border-gray-400'
                 }`}
               >
@@ -101,7 +101,7 @@ export default function Home() {
               placeholder="e.g. A3K7"
               value={roomCode}
               onChange={e => setRoomCode(e.target.value.toUpperCase())}
-              className="w-full px-4 py-3 text-2xl text-center tracking-[0.3em] font-mono border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none uppercase"
+              className="w-full px-4 py-3 text-2xl text-center tracking-[0.3em] font-mono border-2 border-gray-300 rounded-lg focus:border-mu-base focus:outline-none uppercase"
               required
             />
           </div>
@@ -120,7 +120,7 @@ export default function Home() {
               placeholder="e.g. 240531"
               value={studentId}
               onChange={e => setStudentId(e.target.value.replace(/\D/g, ''))}
-              className="w-full px-4 py-3 text-2xl text-center tracking-[0.15em] font-mono border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
+              className="w-full px-4 py-3 text-2xl text-center tracking-[0.15em] font-mono border-2 border-gray-300 rounded-lg focus:border-mu-base focus:outline-none"
               required
             />
             <p className="text-xs text-gray-400 mt-1">Your FLAME University student ID number</p>
@@ -133,7 +133,7 @@ export default function Home() {
           <button
             type="submit"
             disabled={joining || !section || !roomCode.trim() || !studentId.trim()}
-            className="w-full py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="w-full py-3 bg-mu-base text-white font-semibold rounded-lg hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             {joining ? 'Joining...' : 'Join Game'}
           </button>
@@ -144,7 +144,7 @@ export default function Home() {
           <p className="text-sm text-gray-500 mb-2">Are you the instructor?</p>
           <button
             onClick={() => router.push('/create')}
-            className="text-blue-600 font-medium hover:underline"
+            className="text-mu-base font-medium hover:underline"
           >
             Create a new game
           </button>

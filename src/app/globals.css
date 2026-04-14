@@ -3,23 +3,39 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
-  --pink-card: #FF6B9D;
-  --pink-card-light: #FFF0F5;
-  --blue-card: #4A90D9;
-  --blue-card-light: #EBF5FF;
-  --accent-red: #E74C3C;
-  --accent-green: #27AE60;
-  --accent-orange: #F39C12;
+  /* Mubeamer palette */
+  --mu-base: #0000DC;        /* RGB(0,0,220) — primary blue */
+  --mu-base-light: #E8E8FF;  /* light tint for backgrounds */
+  --mu-med: #F01928;         /* RGB(240,25,40) — accent red */
+  --mu-med-light: #FFF0F2;   /* light tint for backgrounds */
+  --mu-sci: #00AF3F;         /* RGB(0,175,63) — green / success */
+  --mu-ped: #FF7300;         /* RGB(255,115,0) — orange / warning */
+  --mu-law: #9100DC;         /* RGB(145,0,220) — purple accent */
+  --mu-phil: #4BC8FF;        /* RGB(75,200,255) — light blue */
+  /* Card colors */
+  --pink-card: #F01928;      /* mubeamer @med */
+  --pink-card-light: var(--mu-med-light);
+  --blue-card: #0000DC;      /* mubeamer @base */
+  --blue-card-light: var(--mu-base-light);
+  --accent-green: var(--mu-sci);
+  --accent-orange: var(--mu-ped);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-mu-base: var(--mu-base);
+  --color-mu-base-light: var(--mu-base-light);
+  --color-mu-med: var(--mu-med);
+  --color-mu-med-light: var(--mu-med-light);
+  --color-mu-sci: var(--mu-sci);
+  --color-mu-ped: var(--mu-ped);
+  --color-mu-law: var(--mu-law);
+  --color-mu-phil: var(--mu-phil);
   --color-pink-card: var(--pink-card);
   --color-pink-light: var(--pink-card-light);
   --color-blue-card: var(--blue-card);
   --color-blue-light: var(--blue-card-light);
-  --color-accent-red: var(--accent-red);
   --color-accent-green: var(--accent-green);
   --color-accent-orange: var(--accent-orange);
   --font-sans: var(--font-geist-sans);
@@ -47,12 +63,11 @@ body {
     padding: 0 !important;
     margin: 0 !important;
   }
-  /* Prevent page breaks inside sections */
   table, .rounded-lg, .mb-4, .mb-6 {
     break-inside: avoid;
   }
-  /* Force backgrounds to print */
-  .bg-gray-50, .bg-blue-50, .bg-yellow-50, .bg-green-50 {
+  .bg-gray-50, .bg-blue-50, .bg-yellow-50, .bg-green-50,
+  .bg-mu-base-light, .bg-mu-med-light {
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
