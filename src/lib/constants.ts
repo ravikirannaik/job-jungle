@@ -34,6 +34,9 @@ export const ENDOWMENT_SCHEME: Record<string, number> = {
   W: 5, X: 5, Y: 5, Z: 5,
 };
 
+// Max pending offers an employer can have at once (queue capacity)
+export const MAX_PENDING_PER_EMPLOYER = 3;
+
 // Default game settings
 export const DEFAULT_MAX_ROUNDS = 6;
 export const DEFAULT_ROUND_DURATION_SEC = 420; // 7 minutes

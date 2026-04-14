@@ -3,6 +3,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useGame } from '@/contexts/GameContext';
 import { useTimer, formatTime } from '@/hooks/useTimer';
+import { MAX_PENDING_PER_EMPLOYER } from '@/lib/constants';
 import type { Player } from '@/lib/types';
 
 export default function WorkerPage() {
@@ -58,6 +59,11 @@ export default function WorkerPage() {
   // Count hires per employer this round for display
   function getEmployerHireCount(empId: string) {
     return currentRoundHires.filter(h => h.employer_id === empId).length;
+  }
+
+  // Count pending offers per employer this round
+  function getEmployerPendingCount(empId: string) {
+    return offers.filter(o => o.employer_id === empId && o.status === 'pending').length;
   }
 
   if (loading) {
@@ -269,20 +275,34 @@ export default function WorkerPage() {
                 <div className="space-y-2">
                   {employers.map(emp => {
                     const hireCount = getEmployerHireCount(emp.id);
+                    const pendingCount = getEmployerPendingCount(emp.id);
+                    const queueFull = pendingCount >= MAX_PENDING_PER_EMPLOYER;
                     const isSelected = selectedEmployer === emp.id;
                     return (
                       <div key={emp.id}>
                         <button
-                          onClick={() => setSelectedEmployer(isSelected ? null : emp.id)}
+                          onClick={() => !queueFull && setSelectedEmployer(isSelected ? null : emp.id)}
+                          disabled={queueFull}
                           className={`w-full p-3 rounded-lg border-2 text-left transition-colors ${
-                            isSelected
-                              ? 'border-mu-base bg-mu-base-light'
-                              : 'border-gray-200 hover:border-gray-300'
+                            queueFull
+                              ? 'border-gray-200 bg-gray-100 opacity-60 cursor-not-allowed'
+                              : isSelected
+                                ? 'border-mu-base bg-mu-base-light'
+                                : 'border-gray-200 hover:border-gray-300'
                           }`}
                         >
                           <div className="flex justify-between items-center">
                             <span className="font-medium">{emp.employer_firm_name}</span>
-                            <span className="text-xs text-gray-500">{hireCount} hired</span>
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs text-gray-500">{hireCount} hired</span>
+                              <span className={`text-xs px-1.5 py-0.5 rounded ${
+                                queueFull
+                                  ? 'bg-red-100 text-red-600 font-medium'
+                                  : 'bg-green-100 text-green-700'
+                              }`}>
+                                {queueFull ? 'Queue full' : `${MAX_PENDING_PER_EMPLOYER - pendingCount} slots`}
+                              </span>
+                            </div>
                           </div>
                         </button>
 

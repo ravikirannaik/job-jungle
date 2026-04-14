@@ -4,7 +4,7 @@ import { useMemo, useEffect } from 'react';
 import { useGame } from '@/contexts/GameContext';
 import { useTimer, formatTime } from '@/hooks/useTimer';
 import { getPxMP } from '@/lib/game-logic';
-import { PINK_PxMP, BLUE_PxMP, PINK_KITES, BLUE_KITES, KITE_PRICE } from '@/lib/constants';
+import { PINK_PxMP, BLUE_PxMP, PINK_KITES, BLUE_KITES, KITE_PRICE, MAX_PENDING_PER_EMPLOYER } from '@/lib/constants';
 
 export default function EmployerPage() {
   const { game, player, players, offers, hires, loading, setPlayer } = useGame();
@@ -205,7 +205,7 @@ export default function EmployerPage() {
         {game.status === 'round' && (
           <div>
             <h3 className="font-semibold mb-2">
-              Incoming Offers ({incomingOffers.length})
+              Incoming Offers ({incomingOffers.length}/{MAX_PENDING_PER_EMPLOYER})
             </h3>
             {incomingOffers.length === 0 ? (
               <p className="text-sm text-gray-400 text-center p-4">

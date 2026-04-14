@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createServerClient } from '@/lib/supabase/server';
 import { getPxMP } from '@/lib/game-logic';
+import { MAX_PENDING_PER_EMPLOYER } from '@/lib/constants';
 
 // POST: Worker sends a wage offer to an employer
 export async function POST(request: Request) {
@@ -40,6 +41,21 @@ export async function POST(request: Request) {
 
   if (existingHire) {
     return NextResponse.json({ error: 'Already hired this round' }, { status: 400 });
+  }
+
+  // Check employer queue capacity
+  const { count: pendingCount } = await supabase
+    .from('offers')
+    .select('id', { count: 'exact' })
+    .eq('employer_id', employerId)
+    .eq('round', game.current_round)
+    .eq('status', 'pending');
+
+  if ((pendingCount || 0) >= MAX_PENDING_PER_EMPLOYER) {
+    return NextResponse.json(
+      { error: `This employer's queue is full (${MAX_PENDING_PER_EMPLOYER} offers). Try another employer or wait.` },
+      { status: 400 }
+    );
   }
 
   // Insert offer (DB enforces one pending per worker per round)
