@@ -30,6 +30,16 @@ export default function WorkerPage() {
     [players]
   );
 
+  // Worker number — assigned by join order
+  const myWorkerNumber = useMemo(() => {
+    if (!player) return 0;
+    const workerPlayers = players
+      .filter(p => p.role === 'worker' || p.became_employer_round)
+      .sort((a, b) => (a.joined_at || '').localeCompare(b.joined_at || ''));
+    const idx = workerPlayers.findIndex(p => p.id === player.id);
+    return idx >= 0 ? idx + 1 : 0;
+  }, [players, player]);
+
   // Deduplicate employers by firm name (pairs share a firm)
   const firms = useMemo(() => {
     const map = new Map<string, { firmName: string; playerIds: string[] }>();
@@ -211,6 +221,7 @@ export default function WorkerPage() {
       <div className={`p-3 text-center text-white font-semibold text-sm ${
         player.skill === 'blue' ? 'bg-mu-base' : 'bg-mu-med'
       }`}>
+        <span className="text-lg font-bold mr-2">W#{myWorkerNumber}</span>
         {player.skill === 'blue' ? 'BLUE CARD - Skilled' : 'PINK CARD - Unskilled'}
         <span className="ml-2 opacity-75">({player.name})</span>
       </div>

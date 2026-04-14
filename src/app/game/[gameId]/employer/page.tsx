@@ -21,6 +21,16 @@ export default function EmployerPage() {
     }
   }, [loading, player, game, players, setPlayer]);
 
+  // Worker number map — anonymous IDs by join order
+  const workerNumberMap = useMemo(() => {
+    const map = new Map<string, number>();
+    const workerPlayers = players
+      .filter(p => p.role === 'worker' || p.became_employer_round)
+      .sort((a, b) => (a.joined_at || '').localeCompare(b.joined_at || ''));
+    workerPlayers.forEach((p, i) => map.set(p.id, i + 1));
+    return map;
+  }, [players]);
+
   // All partner IDs sharing the same firm name
   const firmPartnerIds = useMemo(() => {
     if (!player?.employer_firm_name) return player ? [player.id] : [];
@@ -77,8 +87,9 @@ export default function EmployerPage() {
     return Object.values(byRound).reduce((sum, r) => sum + r.revenue - r.wages, 0);
   }, [allMyHires]);
 
-  function getWorkerName(workerId: string) {
-    return players.find(p => p.id === workerId)?.name || '?';
+  function getWorkerCode(workerId: string) {
+    const num = workerNumberMap.get(workerId);
+    return num ? `W#${num}` : '?';
   }
 
   function getWorkerSkill(workerId: string): 'pink' | 'blue' {
@@ -232,7 +243,7 @@ export default function EmployerPage() {
                     }`}>
                       <div className="flex items-center justify-between mb-2">
                         <div>
-                          <span className="font-medium">{getWorkerName(offer.worker_id)}</span>
+                          <span className="font-medium">{getWorkerCode(offer.worker_id)}</span>
                           <span className={`ml-2 px-1.5 py-0.5 rounded text-xs ${
                             workerSkill === 'blue' ? 'bg-mu-base-light text-mu-base' : 'bg-mu-med-light text-mu-med'
                           }`}>
@@ -277,7 +288,7 @@ export default function EmployerPage() {
             {currentRoundHires.map(h => (
               <div key={h.id} className="flex justify-between text-sm py-1 border-b border-gray-200 last:border-0">
                 <span>
-                  {getWorkerName(h.worker_id)}
+                  {getWorkerCode(h.worker_id)}
                   <span className={`ml-1 text-xs ${h.worker_skill === 'blue' ? 'text-mu-base' : 'text-mu-med'}`}>
                     ({h.worker_skill})
                   </span>
