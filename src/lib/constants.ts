@@ -43,6 +43,6 @@ export const DEFAULT_ROUND_DURATION_SEC = 420; // 7 minutes
 
 // Firm names assigned to employer pairs
 export const FIRM_NAMES = [
-  'Firm A', 'Firm B', 'Firm C', 'Firm D', 'Firm E',
-  'Firm F', 'Firm G', 'Firm H', 'Firm I', 'Firm J',
+  'AdamSmith Corp', 'KarlMarx Corp', 'GBecker Inc', 'Mincer LLC', 'Claudia Co', 'Borjas Ltd',
+  'Firm G', 'Firm H', 'Firm I', 'Firm J',
 ];
