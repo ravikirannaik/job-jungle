@@ -326,7 +326,7 @@ export default function WorkerPage() {
                                   ? 'bg-red-100 text-red-600 font-medium'
                                   : 'bg-green-100 text-green-700'
                               }`}>
-                                {queueFull ? 'Queue full' : `${MAX_PENDING_PER_EMPLOYER - pendingCount} slots`}
+                                {queueFull ? 'Full — wait or try another firm' : `${MAX_PENDING_PER_EMPLOYER - pendingCount} slots`}
                               </span>
                             </div>
                           </div>
@@ -419,7 +419,7 @@ export default function WorkerPage() {
         )}
 
         {/* Hire History */}
-        {myHireHistory.length > 0 && (
+        {game.current_round > 0 && (
           <div>
             <h3 className="font-semibold mb-2 text-sm">Your History</h3>
             <table className="w-full text-sm">
@@ -433,22 +433,46 @@ export default function WorkerPage() {
               <tbody>
                 {Array.from({ length: game.current_round }, (_, i) => i + 1).map(round => {
                   const hire = myHireHistory.find(h => h.round === round);
+                  const roundComplete = round < game.current_round || game.status === 'between_rounds' || game.status === 'ended';
                   return (
                     <tr key={round} className="border-b">
                       <td className="p-1">{round}</td>
                       <td className="p-1">
                         {hire
                           ? allEmployers.find(e => e.id === hire.employer_id)?.employer_firm_name || '?'
-                          : <span className="text-gray-400">Unemployed (PA)</span>
+                          : roundComplete
+                            ? <span className="text-gray-400">Unemployed (PA)</span>
+                            : <span className="text-gray-400">—</span>
                         }
                       </td>
                       <td className="p-1 font-medium">
-                        {hire ? `$${hire.wage}` : `$${paAmount}`}
+                        {hire ? `$${hire.wage}` : roundComplete ? `$${paAmount}` : '—'}
                       </td>
                     </tr>
                   );
                 })}
               </tbody>
+              <tfoot>
+                <tr className="border-t-2 font-semibold">
+                  <td className="p-1" colSpan={2}>Total Earnings</td>
+                  <td className="p-1">
+                    ${(() => {
+                      let total = 0;
+                      for (let r = 1; r <= game.current_round; r++) {
+                        const hire = myHireHistory.find(h => h.round === r);
+                        const roundComplete = r < game.current_round || game.status === 'between_rounds' || game.status === 'ended';
+                        if (hire) total += hire.wage;
+                        else if (roundComplete) total += paAmount;
+                      }
+                      return total;
+                    })()}
+                  </td>
+                </tr>
+                <tr className="text-gray-500 text-xs">
+                  <td className="p-1" colSpan={2}>Endowment + Earnings</td>
+                  <td className="p-1 font-medium text-sm">${player.balance}</td>
+                </tr>
+              </tfoot>
             </table>
           </div>
         )}
